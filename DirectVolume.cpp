@@ -304,7 +304,11 @@ void DirectVolume::handlePartitionAdded(const char *devpath, NetlinkEvent *evt) 
 #endif
         if (getState() != Volume::State_Formatting) {
             setState(Volume::State_Idle);
+#ifdef PATCH_FOR_SLSIAP
+            if (mRetryMount == true || !strncmp(getLabel(), "usbdisk", 7)) {
+#else
             if (mRetryMount == true) {
+#endif
                 mRetryMount = false;
                 mountVol();
             }
@@ -410,7 +414,7 @@ void DirectVolume::handlePartitionRemoved(const char * /*devpath*/,
     if (state != Volume::State_Mounted && state != Volume::State_Shared) {
         return;
     }
-        
+
     if ((dev_t) MKDEV(major, minor) == mCurrentlyMountedKdev) {
         /*
          * Yikes, our mounted partition is going away!
@@ -429,7 +433,7 @@ void DirectVolume::handlePartitionRemoved(const char * /*devpath*/,
 
 
         if (Volume::unmountVol(true, false, false)) {
-            SLOGE("Failed to unmount volume on bad removal (%s)", 
+            SLOGE("Failed to unmount volume on bad removal (%s)",
                  strerror(errno));
             // XXX: At this point we're screwed for now
         } else {
