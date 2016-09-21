@@ -594,8 +594,15 @@ dev_t GetDevice(const std::string& path) {
 
 std::string DefaultFstabPath() {
     char hardware[PROPERTY_VALUE_MAX];
+    char bootdev[PROPERTY_VALUE_MAX];
+
     property_get("ro.hardware", hardware, "");
-    return StringPrintf("/fstab.%s", hardware);
+
+    if (property_get("ro.bootdev", bootdev, "")) {
+        return StringPrintf("/fstab.%s.%s", hardware, bootdev);
+    } else {
+        return StringPrintf("/fstab.%s", hardware);
+    }
 }
 
 }  // namespace vold
